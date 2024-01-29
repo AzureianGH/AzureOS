@@ -1,0 +1,45 @@
+# $@ = target file
+# $< = first dependency
+# $^ = all dependencies
+
+# First rule is the one executed when no parameters are fed to the Makefile
+all: run
+
+kernel.bin: kernel-entry.o ports.o keyboard.o string.o types.o memory.o display.o kernel.o
+	ld -m elf_i386 -no-pie -o $@ -Ttext 0x1000 $^ --oformat binary
+
+kernel-entry.o: kernel-entry.asm
+	nasm $< -f elf -o $@
+
+kernel.o: kernel.c
+	gcc -m32 -fno-pie -ffreestanding -c $< -o $@
+
+display.o: ./standard/display/display.c
+	gcc -m32 -fno-pie -ffreestanding -c $< -o $@
+
+memory.o: ./standard/memory/memory.c
+	gcc -m32 -fno-pie -ffreestanding -c $< -o $@
+
+types.o: ./standard/basic/types/types.c
+	gcc -m32 -fno-pie -ffreestanding -c $< -o $@
+
+string.o: ./standard/basic/string/string.c
+	gcc -m32 -fno-pie -ffreestanding -c $< -o $@
+
+keyboard.o: ./standard/keyboard/keyboard.c
+	gcc -m32 -fno-pie -ffreestanding -c $< -o $@
+
+ports.o: ./standard/basic/ports/ports.c
+	gcc -m32 -fno-pie -ffreestanding -c $< -o $@
+
+mbr.bin: mbr.asm
+	nasm $< -f bin -o $@
+
+os-image.bin: mbr.bin kernel.bin
+	cat $^ > $@
+
+run: os-image.bin
+	qemu-system-i386 -fda $<
+
+clean:
+	$(RM) *.bin *.o *.dis
