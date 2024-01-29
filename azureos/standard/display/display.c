@@ -59,13 +59,12 @@ void clear_screen_color(uint8_t color) {
 	globalmem = video_memory;
 }
 
-int strlen(string str) {
-    int len = 0;
-    while (*str != null_char) {
-        len++;
-        str++;
-    }
-    return len;
+int strlen(const char str[]) {
+	int length = 0;
+	while (str[length] != null_char) {
+		length++;
+	}
+	return length;
 }
 /// <summary>
 /// Set character at video memory offset
@@ -78,13 +77,18 @@ void scavm(char _char, int offset) {
     vidmem[offset + 1] = color;
 }
 
-void print(char *str) {
-    int offset = gtcursor();
-    int i = 0;
-    while (str[i] != 0) {
-        scavm(str[i], offset);
-        i++;
-        offset += 2;
-    }
-    stcursor(offset);
+void print(const char* str) {
+    
+int length = strlen(str);
+	for (int i = 0; i < length; i++) {
+		if (str[i] == '\n') {
+			currentl++;
+			lineindex = 0;
+		}
+		else {
+			put_char_at(str[i], lineindex, currentl);
+			lineindex++;
+		}
+	}
+	stcursor(gtcursor());
 }

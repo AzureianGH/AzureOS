@@ -14,9 +14,9 @@ void strcpy(char* dest, const char* src);
 void put_char_at(char c, int x, int y);
 void put_char_at_color(char c, int x, int y, uint8_t color);
 void clear_screen();
-int strlen(string str);
+int strlen(const char str[]);
 void scavm(char _char, int offset);
-void print(char* str);
+void print(const char* str);
 
 void clear_screen_color(uint8_t color);
 #endif // DISPLAY_H

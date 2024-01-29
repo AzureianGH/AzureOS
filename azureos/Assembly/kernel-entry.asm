@@ -1,17 +1,13 @@
 [bits 32]
-[extern start]
-[extern update]
+[extern main]
 ; Global halt so C code can call it
 [global halt]
-; Global doinb so C code can call it
-[global doinb]
 
-call start
 
-updat:
-    call update
-    jmp updat
+call main
 
+;jmp $
+jmp $
 halt:
 	mov eax, 1
 	mov ebx, 0

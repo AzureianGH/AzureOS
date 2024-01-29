@@ -3,14 +3,11 @@
 #include "standard/basic/basic.h"
 /// Completely halts the system.
 extern void halt();
-
-void start()
-{
-    clear_screen_color(0x0f);
-    
+void Freeze() {
+	asm("hlt");
 }
-
-void update()
+void main()
 {
-
+	clear_screen();
+	print((char*)"Hello World!");
 }

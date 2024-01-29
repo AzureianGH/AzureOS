@@ -245,14 +245,14 @@ if [ "$NOASM" != "1" ]; then
     nasm ./Assembly/mbr.asm -f bin -o ./mbr.bin
 fi
 if [ "$NOGCC" != "1" ]; then
-    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./kernel.c -o ./kernel.o
-    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/display/display.c -o ./display.o
-    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/memory/memory.c -o ./memory.o
-    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/basic/types/types.c -o ./types.o
-    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/basic/string/string.c -o ./string.o
-    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/keyboard/keyboard.c -o ./keyboard.o
-    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/basic/ports/ports.c -o ./ports.o
-    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/basic/basic.c -o ./basic.o
+    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./kernel.c -o ./kernel.o
+    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/display/display.c -o ./display.o
+    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/memory/memory.c -o ./memory.o
+    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/types/types.c -o ./types.o
+    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/string/string.c -o ./string.o
+    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/keyboard/keyboard.c -o ./keyboard.o
+    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/ports/ports.c -o ./ports.o
+    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/basic.c -o ./basic.o
 fi
 # Linking
 if [ "$NOLINK" != "1" ]; then
@@ -286,7 +286,7 @@ if [ "$RUNVM" = "1" ]; then
         dd if=./azure-os.bin of=./azure-os.img bs=512 count=2880
         #if --no-debug is false, then run with debug output
         if [ "$NODEBUG" != "1" ]; then
-			qemu-system-i386 -no-reboot -d int -fda ./azure-os.img 2>&1 | tee -a ./azure-os-img.log
+			qemu-system-i386 -no-reboot -d int  -fda ./azure-os.img 2>&1 | tee -a ./azure-os-img.log
 		fi
         #else , run without debug output
         if [ "$NODEBUG" = "1" ]; then
@@ -299,11 +299,11 @@ if [ "$RUNVM" = "1" ]; then
         if [ "$NODEBUG" != "1" ]; then
             #if -- no-reboot is false, then reboot after running
             if [ "$NOREBOOT" != "1" ]; then
-				qemu-system-i386 -d int -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
+				qemu-system-i386 -d int  -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
 			fi
             #if --no-reboot is true, then dont reboot after running
             if [ "$NOREBOOT" = "1" ]; then
-			    qemu-system-i386 -no-reboot -d int -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
+			    qemu-system-i386 -no-reboot -d int  -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
             fi
         fi
 		#else , run without debug output

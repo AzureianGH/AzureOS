@@ -1,6 +1,8 @@
 [bits 16]
 [org 0x7c00]
 
+
+
 ; where to load the kernel to
 KERNEL_OFFSET equ 0x1000
 
