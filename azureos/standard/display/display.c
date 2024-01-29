@@ -67,6 +67,11 @@ int strlen(string str) {
     }
     return len;
 }
+/// <summary>
+/// Set character at video memory offset
+/// </summary>
+/// <param name="_char">Character to place</param>
+/// <param name="offset">Video Address Offset</param>
 void scavm(char _char, int offset) {
     uint8_t* vidmem = (uint8_t*)VIDEO_ADDRESS;
     vidmem[offset] = _char;

@@ -1,5 +1,5 @@
 #export the variable AZOSBP, contains the current directory. TODO: Make it changeable using parameters.
-export AZOSBP=/mnt/e/Downloads/azureos-20240127T032736Z-001/azureos/
+export AZOSBP=/mnt/e/Downloads/azureos-20240127T032736Z-001/azureos
 #get arguments from command line, if one of the args is --no-clean, then dont run rm *.o *.bin *.dis
 #if not in dir /mnt/e/Downloads/azureos-20240127T032736Z-001/azureos/ the throw error
 if [ "$PWD" != "$AZOSBP" ]; then
@@ -238,22 +238,21 @@ if [[ $var == *"--force-dir:"* ]]; then
 done
 
 # Compile OS
-#make a label called compile
-compile:
+
 #if --no-asm is set, then dont assemble the assembly files
 if [ "$NOASM" != "1" ]; then
-    nasm ./kernel-entry.asm -f elf -o ./kernel-entry.o
-    nasm ./mbr.asm -f bin -o ./mbr.bin
+    nasm ./Assembly/kernel-entry.asm -f elf -o ./kernel-entry.o
+    nasm ./Assembly/mbr.asm -f bin -o ./mbr.bin
 fi
 if [ "$NOGCC" != "1" ]; then
-    gcc -m32 -fno-pie -ffreestanding -c ./kernel.c -o ./kernel.o
-    gcc -m32 -fno-pie -ffreestanding -c ./standard/display/display.c -o ./display.o
-    gcc -m32 -fno-pie -ffreestanding -c ./standard/memory/memory.c -o ./memory.o
-    gcc -m32 -fno-pie -ffreestanding -c ./standard/basic/types/types.c -o ./types.o
-    gcc -m32 -fno-pie -ffreestanding -c ./standard/basic/string/string.c -o ./string.o
-    gcc -m32 -fno-pie -ffreestanding -c ./standard/keyboard/keyboard.c -o ./keyboard.o
-    gcc -m32 -fno-pie -ffreestanding -c ./standard/basic/ports/ports.c -o ./ports.o
-    gcc -m32 -fno-pie -ffreestanding -c ./standard/basic/basic.c -o ./basic.o
+    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./kernel.c -o ./kernel.o
+    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/display/display.c -o ./display.o
+    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/memory/memory.c -o ./memory.o
+    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/basic/types/types.c -o ./types.o
+    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/basic/string/string.c -o ./string.o
+    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/keyboard/keyboard.c -o ./keyboard.o
+    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/basic/ports/ports.c -o ./ports.o
+    gcc -m32 -fno-pie -ffreestanding -Wall -Werror -Wno-unused-variable -c ./standard/basic/basic.c -o ./basic.o
 fi
 # Linking
 if [ "$NOLINK" != "1" ]; then
@@ -318,4 +317,5 @@ if [ "$RUNVM" = "1" ]; then
 				qemu-system-i386 -no-reboot -fda ./azure-os.bin
 			fi
         fi
+    fi
 fi
