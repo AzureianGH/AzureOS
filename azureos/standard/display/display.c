@@ -79,16 +79,5 @@ void scavm(char _char, int offset) {
 
 void print(const char* str) {
     
-int length = strlen(str);
-	for (int i = 0; i < length; i++) {
-		if (str[i] == '\n') {
-			currentl++;
-			lineindex = 0;
-		}
-		else {
-			put_char_at(str[i], lineindex, currentl);
-			lineindex++;
-		}
-	}
-	stcursor(gtcursor());
+	//
 }

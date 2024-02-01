@@ -2,7 +2,6 @@
 #include "standard/keyboard/keyboard.h"
 #include "standard/basic/basic.h"
 /// Completely halts the system.
-extern void halt();
 void Freeze() {
 	asm("hlt");
 }

@@ -25,7 +25,7 @@ if [ "$PWD" != "$AZOSBP" ]; then
 fi
 
 #create list variable of valid arguments
-validArgs=(--version --help --clean-all --clean-non-os --no-clean --no-link --no-asm --no-gcc --run-vm --format:img --format:raw --no-debug --no-reboot --force-dir:)
+validArgs=(--version --help --clean-all --clean-non-os --no-clean --no-link --no-asm --no-gcc --run-vm --format:img --format:raw --no-debug --no-reboot --force-dir: --export-gdb)
 
 # if --version
 for var in "$@"
@@ -154,6 +154,15 @@ do
     fi
 done
 
+#if --export-gdb
+for var in "$@"
+do
+	if [ "$var" = "--export-gdb" ]; then
+		echo "Exporting GDB"
+		export EXPORTGDB=1
+	fi
+done
+
 #if --no-asm
 for var in "$@"
 do
@@ -253,12 +262,14 @@ if [ "$NOGCC" != "1" ]; then
     gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/keyboard/keyboard.c -o ./keyboard.o
     gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/ports/ports.c -o ./ports.o
     gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/basic.c -o ./basic.o
+    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/CPU/int/int.c -o ./int.o
 fi
 # Linking
 if [ "$NOLINK" != "1" ]; then
     #if no asm, dont link
     if [ "$NOASM" != "1" ]; then
-        ld -m elf_i386 -no-pie -o ./kernel.bin -Ttext 0x1000 ./kernel-entry.o ./kernel.o ./display.o ./memory.o ./types.o ./string.o ./keyboard.o ./ports.o ./basic.o --oformat binary
+        ld -m elf_i386 -no-pie -o ./kernel.elf -Ttext 0x1000 ./kernel-entry.o ./kernel.o ./display.o ./memory.o ./types.o ./string.o ./keyboard.o ./ports.o ./basic.o ./int.o
+        ld -m elf_i386 -no-pie -o ./kernel.bin -Ttext 0x1000 ./kernel-entry.o ./kernel.o ./display.o ./memory.o ./types.o ./string.o ./keyboard.o ./ports.o ./basic.o ./int.o --oformat binary
     fi
     
     #if asm is enabled, then link the mbr.bin file
@@ -278,15 +289,23 @@ if [ "$NOLINK" != "1" ]; then
         fi
     fi
 fi
+if [ "$ISIMG" = "1" ]; then
+	dd if=./azure-os.bin of=./azure-os.img bs=512 count=2880
+fi
+
+#export gdb
+if [ "$EXPORTGDB" = "1" ]; then
+    objcopy --only-keep-debug ./kernel.elf ./kernel.sym
+fi
 
 # Run VM
 if [ "$RUNVM" = "1" ]; then
     #if --format:img is set, then format to .img
     if [ "$ISIMG" = "1" ]; then
-        dd if=./azure-os.bin of=./azure-os.img bs=512 count=2880
+        
         #if --no-debug is false, then run with debug output
         if [ "$NODEBUG" != "1" ]; then
-			qemu-system-i386 -no-reboot -d int  -fda ./azure-os.img 2>&1 | tee -a ./azure-os-img.log
+			qemu-system-i386 -no-reboot -d int -s -S  -fda ./azure-os.img 2>&1 | tee -a ./azure-os-img.log
 		fi
         #else , run without debug output
         if [ "$NODEBUG" = "1" ]; then
@@ -299,11 +318,11 @@ if [ "$RUNVM" = "1" ]; then
         if [ "$NODEBUG" != "1" ]; then
             #if -- no-reboot is false, then reboot after running
             if [ "$NOREBOOT" != "1" ]; then
-				qemu-system-i386 -d int  -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
+				qemu-system-i386 -d int -s -S  -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
 			fi
             #if --no-reboot is true, then dont reboot after running
             if [ "$NOREBOOT" = "1" ]; then
-			    qemu-system-i386 -no-reboot -d int  -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
+			    qemu-system-i386 -no-reboot -d int -s -S  -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
             fi
         fi
 		#else , run without debug output

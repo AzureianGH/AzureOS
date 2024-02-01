@@ -1,14 +1,16 @@
 {
   "ExpandedNodes": [
     "",
+    "\\Assembly",
     "\\OSBUILDTOOLS",
     "\\standard",
     "\\standard\\basic",
-    "\\standard\\basic\\ports",
+    "\\standard\\basic\\string",
     "\\standard\\basic\\types",
     "\\standard\\display",
     "\\standard\\keyboard",
     "\\standard\\memory"
   ],
+  "SelectedNode": "\\OSBUILDTOOLS\\azosbt.sh",
   "PreviewInSolutionExplorer": false
 }
