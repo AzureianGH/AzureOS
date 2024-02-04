@@ -25,7 +25,7 @@ if [ "$PWD" != "$AZOSBP" ]; then
 fi
 
 #create list variable of valid arguments
-validArgs=(--version --help --clean-all --clean-non-os --no-clean --no-link --no-asm --no-gcc --run-vm --format:img --format:raw --no-debug --no-reboot --force-dir: --export-gdb)
+validArgs=(--version --help --clean-all --clean-non-os --no-clean --no-link --no-asm --no-CROSSCOMPILER/bin/x86_64-elf-gcc --run-vm --format:img --format:raw --no-debug --no-reboot --force-dir: --export-gdb)
 
 # if --version
 for var in "$@"
@@ -59,12 +59,13 @@ do
         echo "  --no-clean      Do not clean files"
         echo "  --no-link       Do not link files"
         echo "  --no-asm        Do not assemble assembly files"
-        echo "  --no-gcc        Do not compile C files"
+        echo "  --no-CROSSCOMPILER/bin/x86_64-elf-gcc        Do not compile C files"
         echo "  --run-vm        Run the OS in a VM"
         echo "  --format:  (img, raw)    Format the OS to specified format"
         echo "  --no-debug      Do not run with debug output"
         echo "  --no-reboot     Do not reboot after running (Does not reboot if crash occurs)"
         echo "  --force-dir:    Force directory to specified directory"
+        echo "  --export-gdb    Export GDB"
         echo ""
         echo "This is free software, but (recipient) is not allowed to redistribute this software."
         echo "This software is provided as-is, without any warranty."
@@ -86,6 +87,9 @@ do
         #remove azure-os.bin
         rm ./azure-os.bin
         rm ./azure-os.img
+        rm ./kernel.elf
+        rm ./kernel.sym
+        rm *.log
         #exit
         exit
     fi
@@ -172,7 +176,7 @@ do
     fi
 done
 
-#if --no-gcc
+#if --no-CROSSCOMPILER/bin/x86_64-elf-gcc
 for var in "$@"
 do
     if [ "$var" = "--no-gcc" ]; then
@@ -247,29 +251,42 @@ if [[ $var == *"--force-dir:"* ]]; then
 done
 
 # Compile OS
-
+#start compiletimer
+compilestart=$(date +%s)
 #if --no-asm is set, then dont assemble the assembly files
 if [ "$NOASM" != "1" ]; then
     nasm ./Assembly/kernel-entry.asm -f elf -o ./kernel-entry.o
     nasm ./Assembly/mbr.asm -f bin -o ./mbr.bin
 fi
 if [ "$NOGCC" != "1" ]; then
-    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./kernel.c -o ./kernel.o
-    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/display/display.c -o ./display.o
-    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/memory/memory.c -o ./memory.o
-    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/types/types.c -o ./types.o
-    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/string/string.c -o ./string.o
-    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/keyboard/keyboard.c -o ./keyboard.o
-    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/ports/ports.c -o ./ports.o
-    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/basic.c -o ./basic.o
-    gcc -m32 -fno-pie -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/CPU/int/int.c -o ./int.o
+    #start timer
+    start=$(date +%s)
+    echo "Compiling C files..."
+    CROSSCOMPILER/bin/x86_64-elf-gcc -m32 -g -ffreestanding -Wall  -Wno-unused-variable -c ./kernel.c -o ./kernel.o
+    CROSSCOMPILER/bin/x86_64-elf-gcc -m32 -g -ffreestanding -Wall  -Wno-unused-variable -c ./standard/display/display.c -o ./display.o
+    CROSSCOMPILER/bin/x86_64-elf-gcc -m32 -g -ffreestanding -Wall  -Wno-unused-variable -c ./standard/memory/memory.c -o ./memory.o
+    CROSSCOMPILER/bin/x86_64-elf-gcc -m32 -g -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/types/types.c -o ./types.o
+    CROSSCOMPILER/bin/x86_64-elf-gcc -m32 -g -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/string/string.c -o ./string.o
+    CROSSCOMPILER/bin/x86_64-elf-gcc -m32 -g -ffreestanding -Wall  -Wno-unused-variable -c ./standard/keyboard/keyboard.c -o ./keyboard.o
+    CROSSCOMPILER/bin/x86_64-elf-gcc -m32 -g -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/ports/ports.c -o ./ports.o
+    CROSSCOMPILER/bin/x86_64-elf-gcc -m32 -g -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/basic.c -o ./basic.o
+    CROSSCOMPILER/bin/x86_64-elf-gcc -m32 -g -ffreestanding -Wall  -Wno-unused-variable -c ./standard/basic/CPU/int/idt.c -o ./idt.o
+    #end timer
+	end=$(date +%s)
+    #calculate time taken
+	runtime=$((end-start))
+	echo "C files compiled in $runtime seconds"
 fi
 # Linking
 if [ "$NOLINK" != "1" ]; then
     #if no asm, dont link
     if [ "$NOASM" != "1" ]; then
-        ld -m elf_i386 -no-pie -o ./kernel.elf -Ttext 0x1000 ./kernel-entry.o ./kernel.o ./display.o ./memory.o ./types.o ./string.o ./keyboard.o ./ports.o ./basic.o ./int.o
-        ld -m elf_i386 -no-pie -o ./kernel.bin -Ttext 0x1000 ./kernel-entry.o ./kernel.o ./display.o ./memory.o ./types.o ./string.o ./keyboard.o ./ports.o ./basic.o ./int.o --oformat binary
+        linktimer=$(date +%s)
+        CROSSCOMPILER/bin/x86_64-elf-ld -m elf_i386 -o ./kernel.elf -Ttext 0x1000 ./kernel-entry.o ./kernel.o ./display.o ./memory.o ./types.o ./string.o ./keyboard.o ./ports.o ./basic.o ./idt.o
+        CROSSCOMPILER/bin/x86_64-elf-ld -m elf_i386  -o ./kernel.bin -Ttext 0x1000 ./kernel-entry.o ./kernel.o ./display.o ./memory.o ./types.o ./string.o ./keyboard.o ./ports.o ./basic.o ./idt.o --oformat binary
+        endlinkertime=$(date +%s)
+        linkertime=$((endlinkertime-linktimer))
+        echo "Linked in $linkertime seconds"
     fi
     
     #if asm is enabled, then link the mbr.bin file
@@ -290,14 +307,26 @@ if [ "$NOLINK" != "1" ]; then
     fi
 fi
 if [ "$ISIMG" = "1" ]; then
+    startddtimer=$(date +%s)
 	dd if=./azure-os.bin of=./azure-os.img bs=512 count=2880
+    endddtimer=$(date +%s)
+	ddtime=$((endddtimer-startddtimer))
+	echo "IMG formatted in $ddtime seconds"
 fi
 
 #export gdb
 if [ "$EXPORTGDB" = "1" ]; then
+    starttimerobjcopy= $(date +%s)
     objcopy --only-keep-debug ./kernel.elf ./kernel.sym
+    endtimerobjcopy= $(date +%s)
+	runtimeobjcopy=$((endtimerobjcopy-starttimerobjcopy))
+	echo "GDB exported in $runtimeobjcopy seconds"
 fi
-
+#end compiletimer
+compileend=$(date +%s)
+#calculate time taken
+compilertime=$((compileend-compilestart))
+echo "OS Compiled in $compilertime seconds"
 # Run VM
 if [ "$RUNVM" = "1" ]; then
     #if --format:img is set, then format to .img
@@ -305,11 +334,11 @@ if [ "$RUNVM" = "1" ]; then
         
         #if --no-debug is false, then run with debug output
         if [ "$NODEBUG" != "1" ]; then
-			qemu-system-i386 -no-reboot -d int -s -S  -fda ./azure-os.img 2>&1 | tee -a ./azure-os-img.log
+			qemu-system-i386  -no-reboot -d int -s -S -fda ./azure-os.img 2>&1 | tee -a ./azure-os-img.log
 		fi
-        #else , run without debug output
+        #else , run w
         if [ "$NODEBUG" = "1" ]; then
-			qemu-system-i386 -no-reboot -fda ./azure-os.img
+			qemu-system-i386  -no-reboot -fda ./azure-os.img
 		fi
 	fi
     # if --format:raw is set, then format to .raw
@@ -318,22 +347,22 @@ if [ "$RUNVM" = "1" ]; then
         if [ "$NODEBUG" != "1" ]; then
             #if -- no-reboot is false, then reboot after running
             if [ "$NOREBOOT" != "1" ]; then
-				qemu-system-i386 -d int -s -S  -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
+				qemu-system-i386  -d int -s -S -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
 			fi
             #if --no-reboot is true, then dont reboot after running
             if [ "$NOREBOOT" = "1" ]; then
-			    qemu-system-i386 -no-reboot -d int -s -S  -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
+			    qemu-system-i386  -no-reboot -d int -s -S -fda ./azure-os.bin 2>&1 | tee -a ./azure-os-raw.log
             fi
         fi
 		#else , run without debug output
 		if [ "$NODEBUG" = "1" ]; then
             #if --no-reboot is false, then reboot after running
 			if [ "$NOREBOOT" != "1" ]; then
-                qemu-system-i386 -fda ./azure-os.bin
+                qemu-system-i386  -fda ./azure-os.bin
             fi
             #if --no-reboot is true, then dont reboot after running
 			if [ "$NOREBOOT" = "1" ]; then
-				qemu-system-i386 -no-reboot -fda ./azure-os.bin
+				qemu-system-i386  -no-reboot -fda ./azure-os.bin
 			fi
         fi
     fi

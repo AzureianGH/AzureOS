@@ -1,16 +1,17 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Assembly",
-    "\\OSBUILDTOOLS",
     "\\standard",
     "\\standard\\basic",
+    "\\standard\\basic\\CPU",
+    "\\standard\\basic\\CPU\\int",
+    "\\standard\\basic\\ports",
     "\\standard\\basic\\string",
     "\\standard\\basic\\types",
     "\\standard\\display",
     "\\standard\\keyboard",
     "\\standard\\memory"
   ],
-  "SelectedNode": "\\OSBUILDTOOLS\\azosbt.sh",
+  "SelectedNode": "\\kernel.c",
   "PreviewInSolutionExplorer": false
 }

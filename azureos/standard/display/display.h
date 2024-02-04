@@ -1,22 +1,14 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
-#include "../memory/memory.h"
-#include "../basic/string/string.h"
-#include "../basic/types/types.h"
-
-extern int currentl;
-extern int lineindex;
-extern uint8_t* globalmem;
-
-void stcursor(int off);
-int gtcursor();
-void strcpy(char* dest, const char* src);
-void put_char_at(char c, int x, int y);
-void put_char_at_color(char c, int x, int y, uint8_t color);
+#include "../basic/basic.h"
+void set_cursor(int off);
+int get_cursor();
+void set_char_at_video_memory(char character, int offset);
+int get_row_from_offset(int offset);
+int get_offset(int col, int row);
+int move_offset_to_new_line(int offset);
+int scroll_ln(int offset);
+void print_string(char* string);
 void clear_screen();
-int strlen(const char str[]);
-void scavm(char _char, int offset);
-void print(const char* str);
-
-void clear_screen_color(uint8_t color);
+void initalize();
 #endif // DISPLAY_H

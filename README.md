@@ -6,6 +6,10 @@ Welcome to AzureOS, an operating system created by Azureian. This readme provide
 
 ## Building AzureOS
 
+## WARNING!!! YOU NEED A CROSS COMPILER TO RUN SCRIPTS!
+You can download the x86_64 gcc here:
+https://github.com/lordmilko/i686-elf-tools
+
 To build AzureOS, follow these steps:
 
 1. Set the `AZOSBP` environment variable to the directory containing the AzureOS source code.
@@ -32,6 +36,7 @@ The azosbt.sh script supports various options to customize the build process. He
     --format:img or --format:raw: Format the OS image in the specified format.
     --no-debug: Disable debug output.
     --no-reboot: Do not reboot after running (useful for debugging).
+    --export-gdb: Exports the .elf and .sym for debugging.
 
 Please feel free to make an issue ticket or a pull request if you have a fix for something.
 I've been trying to get the `IDT` to work but I can't. It keeps triple faulting.

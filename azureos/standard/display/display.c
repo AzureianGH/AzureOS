@@ -1,83 +1,76 @@
-
 #include "../basic/basic.h"
-#define video_memory ((uint8_t*)0xb8000)
 
-
-int currentl = 0;
-int lineindex = 0;
-uint8_t* globalmem = video_memory;
-
-const uint8_t color = 0x0f;
-
-void stcursor(int off)
+void set_cursor(int off)
 {
-    off /= 2;
-    outb(VGACTRLREG, VGACURSORHIGH);
-    outb(VGADATA, (uint8_t)(off >> 8));
-    outb(VGACTRLREG, VGACURSORLOW);
-    outb(VGADATA, (uint8_t)(off & 0xff));
+	off /= 2;
+	outb(VGA_CTRL_REGISTER, VGA_OFFSET_HIGH);
+	outb(VGA_DATA_REGISTER, (uint8_t)(off >> 8));
+	outb(VGA_CTRL_REGISTER, VGA_OFFSET_LOW);
+	outb(VGA_DATA_REGISTER, (uint8_t)(off & 0xff));
 }
-
-int gtcursor()
+int get_cursor()
 {
-	int off = 0;
-	outb(VGACTRLREG, VGACURSORHIGH);
-	off = inb(VGADATA) << 8;
-	outb(VGACTRLREG, VGACURSORLOW);
-	off += inb(VGADATA);
-	return off * 2;
+	outb(VGA_CTRL_REGISTER, VGA_OFFSET_HIGH);
+	int offset = inb(VGA_DATA_REGISTER) << 8;
+	outb(VGA_CTRL_REGISTER, VGA_OFFSET_LOW);
+	offset += inb(VGA_DATA_REGISTER);
+	return offset * 2;
 }
-
-void strcpy(char* dest, const char* src) {
-    while ((*dest++ = *src++) != null_char);
+void set_char_at_video_memory(char character, int offset)
+{
+	unsigned char* vidmem = (unsigned char*)VIDEO_ADDRESS;
+	vidmem[offset] = character;
+	vidmem[offset + 1] = WHITE_ON_BLACK;
 }
-
-void put_char_at(char c, int x, int y) {
-    uint8_t* ptr = video_memory + (y * 80 + x) * 2;
-    *ptr = c;
-    *(ptr + 1) = color;
+int get_row_from_offset(int offset)
+{
+	return offset / (2 * MAX_COLS);
 }
-
-void put_char_at_color(char c, int x, int y, uint8_t color) {
-    uint8_t* ptr = video_memory + (y * 80 + x) * 2;
-    *ptr = c;
-    *(ptr + 1) = color;
+int get_offset(int col, int row)
+{
+	return 2 * (row * MAX_COLS + col);
 }
-
-void clear_screen() {
-    uint8_t* ptr = video_memory;
-    for (int i = 0; i < 80 * 25; i++) {
-        put_char_at(' ', i % 80, i / 80);
-    }
-    globalmem = video_memory;
+int move_offset_to_new_line(int offset)
+{
+	return get_offset(0, get_row_from_offset(offset) + 1);
 }
-void clear_screen_color(uint8_t color) {
-	uint8_t* ptr = video_memory;
-	for (int i = 0; i < 80 * 25; i++) {
-		put_char_at_color(' ', i % 80, i / 80, color);
+int scroll_ln(int offset)
+{
+	memory_copy(
+		(char*)(get_offset(0, 1) + VIDEO_ADDRESS),
+		(char*)(get_offset(0, 0) + VIDEO_ADDRESS),
+		MAX_COLS * (MAX_ROWS - 1) * 2
+	);
+	for (int col = 0; col < MAX_COLS; col++)
+	{
+		set_char_at_video_memory(' ', get_offset(col, MAX_ROWS - 1));
 	}
-	globalmem = video_memory;
+	return offset - 2 * MAX_COLS;
 }
-
-int strlen(const char str[]) {
-	int length = 0;
-	while (str[length] != null_char) {
-		length++;
+void print_string(char* string) {
+	int offset = get_cursor();
+	for (int i = 0; string[i] != 0; ++i) {
+		if (string[i] == '\n') {
+			offset = move_offset_to_new_line(offset);
+		} else {
+			set_char_at_video_memory(string[i], offset);
+			offset += 2;
+		}
+		if (offset >= MAX_ROWS * MAX_COLS * 2) {
+			offset = scroll_ln(offset);
+		}
 	}
-	return length;
+	set_cursor(offset);
 }
-/// <summary>
-/// Set character at video memory offset
-/// </summary>
-/// <param name="_char">Character to place</param>
-/// <param name="offset">Video Address Offset</param>
-void scavm(char _char, int offset) {
-    uint8_t* vidmem = (uint8_t*)VIDEO_ADDRESS;
-    vidmem[offset] = _char;
-    vidmem[offset + 1] = color;
+	
+void clear_screen()
+{
+	for (int i = 0; i < MAX_COLS * MAX_ROWS; ++i) {
+		set_char_at_video_memory(' ', i * 2);
+	}
+	set_cursor(get_offset(0, 0));
 }
-
-void print(const char* str) {
-    
-	//
+void initalize()
+{
+	clear_screen();
 }
