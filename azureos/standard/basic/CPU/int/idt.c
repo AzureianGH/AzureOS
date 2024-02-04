@@ -1,5 +1,5 @@
 #include "../../basic.h"
-
+#include "../../../display/display.h"
 typedef struct {
     uint16_t low_offset;
     uint16_t selector;
@@ -17,4 +17,24 @@ void set_idt_gate(int n, uint32_t handler) {
     //        P DPL 0 D Type
     idt[n].flags = 0x8E;
     idt[n].high_offset = high_16(handler);
+}
+char* exception_messages[] = {
+    "Division by zero",
+    "Debug",
+    "Reserved"
+};
+typedef struct {
+    // data segment selector
+    uint32_t ds;
+    // general purpose registers pushed by pusha
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
+    // pushed by isr procedure
+    uint32_t int_no, err_code;
+    // pushed by CPU automatically
+    uint32_t eip, cs, eflags, useresp, ss;
+} registers_t;
+
+void isr_handler(registers_t* r) {
+    print_string(exception_messages[r->int_no]);
+    print_string("\n");
 }

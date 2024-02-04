@@ -6,6 +6,6 @@
 
 void main()
 {
-	clear_screen();
-	print_string("Hello there! I'm Azureian. What's it to ya? :3");
+	
+	
 }
